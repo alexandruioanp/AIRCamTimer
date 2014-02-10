@@ -11,3 +11,6 @@ Uses:
 ===
 minimalcomps
 https://github.com/minimalcomps/minimalcompss
+
+ByteArray's optimized JPEGEncoder
+http://www.bytearray.org/?p=775
