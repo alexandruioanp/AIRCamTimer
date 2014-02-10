@@ -1,7 +1,7 @@
 AIRCamTimer
 ===========
 
-A desktop AIR application that takes photos to be later assembled in a time-lapse video, featuring asynchronous image encoding using ActionScript workers.
+A desktop AIR application that takes photos to be later assembled in a time-lapse video, featuring asynchronous image encoding using ActionScript workers and hardware-accelerated StageVideo.
 
 Note
 ====
