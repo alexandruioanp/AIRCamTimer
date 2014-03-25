@@ -1,3 +1,19 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2014 Alexandru Ioan Pop
+aip.messages@yahoo.co.uk
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+*/
 package
 {
 	import com.bit101.components.List;
@@ -118,8 +134,8 @@ package
 		private var updt:Timer=new Timer(1000);
 		
 		private var worker:Worker;
-		private var wtm:MessageChannel;
-		private var mtw:MessageChannel;
+		private var wtm:MessageChannel; //workerToMain
+		private var mtw:MessageChannel; //mainToWorker
 		
 		private var imgBA:ByteArray=new ByteArray();
 		private var bmpd:BitmapData;
@@ -127,7 +143,7 @@ package
 		
 		private var fname:String=new String();
 		
-		private var svA:Boolean;
+		private var svA:Boolean; //StageVideo available?
 		
 		private var directory:String;
 		
@@ -135,8 +151,8 @@ package
 		
 		private var dirSel:Boolean=false;
 		
-		private var capInt:int;
-		private var startX:int;
+		private var capInt:int; //time interval between pictures
+		private var startX:int; //initial window coordinates
 		private var startY:int;
 		
 		private var camSB:SimpleButton=new SimpleButton(camB, camB, camB, camB);
@@ -146,13 +162,14 @@ package
 		private var staSB:SimpleButton=new SimpleButton(stB, stB, stB, stB);
 		private var stpSB:SimpleButton=new SimpleButton(stpB, stpB, stpB, stpB);
 		
-		private var disabled:Sprite=new Sprite();
+		private var disabled:Sprite=new Sprite(); //disabled overlay on the Start button
 		
 		private var iniT:int;
 		
 		private var selectedCam:int=0;
+		private var currentCam:int=-1;
 		
-		private var camList:List
+		private var camList:List;
 		
 		public function AIRCamTimer()
 		{
@@ -498,11 +515,12 @@ package
 		}
 		private function choseCam(e:Event):void
 		{
+			currentCam=selectedCam;
 			selectedCam=camList.selectedIndex;
 		}
 		private function unfocusedInterval(e:FocusEvent):void
 		{
-			intervalTF.appendText(" s");
+			if(intervalTF.text.charAt(intervalTF.text.length-1)!='s') intervalTF.appendText(" s");
 		}
 		private function browseForDir(e:MouseEvent):void
 		{
@@ -541,7 +559,7 @@ package
 			{
 				imgQ=100; qTF.text="100";
 			}
-			if(cam && (camW!=cam.width || camH!=cam.height || camFPS!=cam.fps)) setCam(selectedCam);
+			if(cam && (camW!=cam.width || camH!=cam.height || camFPS!=cam.fps || currentCam!=selectedCam)) setCam(selectedCam);
 			if(capInt!=photoTimer.delay/1000) resetTimer();
 			optionsWindow.visible=false;
 		}

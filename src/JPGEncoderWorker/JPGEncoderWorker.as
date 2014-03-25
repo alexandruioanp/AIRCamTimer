@@ -1,7 +1,5 @@
 package
-{	
-	//import com.adobe.images.JPGEncoder;
-	
+{
 	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.events.Event;
