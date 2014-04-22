@@ -167,9 +167,11 @@ package
 		private var iniT:int;
 		
 		private var selectedCam:int=0;
-		private var currentCam:int=-1;
+		private var currentCam:int=0;
 		
 		private var camList:List;
+		
+		private var done:Boolean=true;
 		
 		public function AIRCamTimer()
 		{
@@ -189,7 +191,6 @@ package
 			photoTimer.addEventListener(TimerEvent.TIMER, tick);
 			fileStream=new FileStream();
 			
-			//temporary
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyD);
 		}
 		private function tick(e:TimerEvent):void
@@ -226,19 +227,19 @@ package
 		private function rcv(e:Event):void
 		{
 			var s:String=wtm.receive();
-			trace("d:"+s);
+			//trace("d:"+s);
 			if(s=="0DONE")
 			{
+				done=true;
+				
 				if(dirSel)
 				{
 					imgFile.url=directory+"/"+fname+".jpg";
 					nativeFile=new File(imgFile.nativePath);
-					//fileStream=new FileStream();
+
 					fileStream.open(nativeFile, FileMode.WRITE);
-					var ba2:ByteArray=new ByteArray();
-					ba2=imgBA;
-					//fileStream.writeBytes(imgBA, 0, imgBA.length);
-					fileStream.writeBytes(ba2, 0, ba2.length);
+					
+					fileStream.writeBytes(imgBA, 0, imgBA.length);
 					fileStream.close();
 				}
 			}
@@ -247,25 +248,28 @@ package
 		{
 			if(e.keyCode==32)
 			{
-				if (cam) capture();
+				if(cam) capture();
 			}
 		}
 		private function capture():void
 		{
-			imgBA.clear();
+			if(done)
+			{
+				imgBA.clear();
 			
-			bmpd=new BitmapData(cam.width, cam.height);
-			cam.drawToBitmapData(bmpd);
-			bmpd.copyPixelsToByteArray(bmpd.rect, imgBA);
+				bmpd=new BitmapData(cam.width, cam.height);
+				cam.drawToBitmapData(bmpd);
+				bmpd.copyPixelsToByteArray(bmpd.rect, imgBA);
+						
+				worker.setSharedProperty("imgWidth", cam.width);
+				worker.setSharedProperty("imgHeight", cam.height);
+				worker.setSharedProperty("imgQ", imgQ);
 					
-			worker.setSharedProperty("imgWidth", cam.width);
-			worker.setSharedProperty("imgHeight", cam.height);
-			worker.setSharedProperty("imgQ", imgQ);
+				mtw.send("encode");
 				
-			mtw.send("encode");
+				done=false;
+			}
 		}
-
-		
 		private function refFileName(e:TimerEvent):void
 		{
 			if(dirSel && cam && capInt) disabled.visible=false;
@@ -415,7 +419,7 @@ package
 			optionsWindow=new NativeWindow(optionsWindowOptions);
 			optionsWindow.title="Options";
 			optionsWindow.width=300;
-			optionsWindow.height=430;
+			optionsWindow.height=530;
 			optionsWindow.activate();
 			optionsWindow.stage.scaleMode=StageScaleMode.NO_SCALE;
 			optionsWindow.stage.align=StageAlign.TOP_LEFT;
@@ -445,9 +449,12 @@ package
 			expl1.text="Input the desired width, height, FPS of the stream and the quality of the saved image" +
 				", then hit OK. The" +
 				" application will try to set it to the closest supported specification. This may" +
-				" not always work as expected. Select a camera from the list and hit the CONnect button"+
-				", which also reconnects to the camera if previously selected. If no cameras are detected "+
-				"check the connection and restart the application.";
+				" not always work as expected. Select a camera from the list and hit the CONnect or the OK buttons."+
+				" CON also forcibly reconnects to the camera if previously selected. If no cameras are detected "+
+				"check the connection and restart the application. "+
+				"Pressing the spacebar in the main window immediately captures the current image. "+
+				"Encoding the image may take a while; if the interval you selected is too low for "+
+				"the hardware of your computer there is a chance some frames will not be captured at all.";
 						
 			wTF.addEventListener(MouseEvent.CLICK, clickedTF);
 			hTF.addEventListener(MouseEvent.CLICK, clickedTF);
@@ -533,8 +540,7 @@ package
 		private function selectedDir(e:Event):void
 		{
 			var auxi:int, auxs:String;
-		//
-		//	testTimer.start();
+
 			dirSel=true;
 			directory=imgFile.url;
 			dirTF.text=imgFile.url; dirTF.text=dirTF.text.substr(8);
@@ -560,6 +566,7 @@ package
 				imgQ=100; qTF.text="100";
 			}
 			if(cam && (camW!=cam.width || camH!=cam.height || camFPS!=cam.fps || currentCam!=selectedCam)) setCam(selectedCam);
+
 			if(capInt!=photoTimer.delay/1000) resetTimer();
 			optionsWindow.visible=false;
 		}
@@ -571,7 +578,6 @@ package
 		}
 		private function detectCams(e:MouseEvent):void
 		{
-		//	rebuildCamList();
 			setCam(selectedCam);
 		}
 		private function clickedTF(e:MouseEvent):void
